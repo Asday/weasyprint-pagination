@@ -14,6 +14,10 @@ def generate_pdf(request):
 
     # Rendered
     html_string = render_to_string('pdf.html', {'items': items})
+
+    if 'html' in request.GET:
+        return HttpResponse(html_string)
+
     html = HTML(string=html_string)
     result = html.write_pdf()
 
