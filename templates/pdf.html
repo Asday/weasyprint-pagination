@@ -1,18 +1,169 @@
-{% for item in items %}
-    <p>
-        {{ forloop.counter }} &mdash; {{ item }}
-    </p>
+{# From https://stackoverflow.com/questions/48581654/writing-multiple-page-pdf-from-html-template-using-weasy-print-and-django #}
 
-    {% if forloop.counter|divisibleby:12 %}
-        <p>
-            <b>Page break here</b>
-        </p>
+<html>
+<style>
+    html {
+        height:100%;
+    }
+    img {
+        max-width: 100%;
+    }
+    @page {
+        margin: 15px 10px;
+    }
+    body {
+        -webkit-font-smoothing: antialiased;
+        -webkit-text-size-adjust: none;
+        width: 100% !important;
+        min-height:100%;
+        line-height: 1.6em;
+    }
 
-        {% comment %}
-            Either of the following two lines works fine.
-        {% endcomment %}
 
-        <div style="page-break-after: always;"></div>
-        {# <div style="page-break-before: always;"></div> #}
-    {% endif %}
-{% endfor %}
+    table tr th,
+    table tr td {
+        vertical-align:top !important;
+    }
+
+    @media only screen and (max-width: 640px) {
+        body {
+            padding: 0 !important;
+        }
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-weight: 800 !important;
+            margin: 20px 0 5px !important;
+        }
+        h1 {
+            font-size: 22px !important;
+        }
+        h2 {
+            font-size: 18px !important;
+        }
+        h3 {
+            font-size: 16px !important;
+        }
+    }
+</style>
+
+<body>
+    <table class="body-wrap" bgcolor="#eee" style="font-family:'Helvetica Neue', 'Arial', 'sans-serif' !important; width:100%;">
+        <tr>
+            <td bgcolor="#999" align="center" style="color:#777; padding:2em 1em;">
+                <table cellspacing="0" style="max-width:640px!important;" width="100%" bgcolor="#ffffff">
+                    <tr class="email-header">
+                        <td style="padding:15px; text-align: center;">
+                            TEST TRANSACTIONS STATEMENT.
+                        </td>
+                    </tr>
+                    <tr class="email-body">
+                        <td colspan="2" style="padding:0 15px 15px;" bgcolor="#fff">
+                            <table border="0" cellpadding="0" cellspacing="0" style="font-size:13px; margin-bottom:20px; width:100%;">
+                                <tr>
+                                    <td style="width: 55%";>
+                                        <h3 style="color:#222; font-weight:300;  font-size:16px;">
+                                            INSURANCE INSTITUTE
+                                        </h3>
+                                        <p>
+                                            Complex, 3rd Floor, <br />
+                                            NEW YORK,</br />
+                                            8
+                                       </p>
+                                    </td>
+                                    <td style="text-align:left;">
+                                        <h3 style="color:#222; font-weight:300; font-size:16px;">
+                                            TO
+                                        </h3>
+                                        <p>
+                                            <b>Position</b> : {{ user.full_name }}  <br/>
+                                            <b>Company</b> : {{ insurer.company_name }} <br/>
+                                            <b>Postal</b> Address : {{ insurer.postal_address }} <br/>
+                                            <b>Email</b> : {{ user.email }} <br/>
+                                            Date: {% now "j F Y" %}<br/>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table border="0" cellpadding="0" cellspacing="0" style="font-size:12px; text-align:left; width:100%;">
+                                <tr>
+                                    <th style="background:#ddd; border-bottom:1px solid #ddd; padding:9px 4px;">POLICY NO. </th>
+                                    <th style="background:#ddd; border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;" colspan="2">CLIENT NAME</th>
+                                    <th style="background:#ddd; border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;">SUM INSURED(TZS)</th>
+                                    <th style="background:#ddd; border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;"> PREMIUM</th>
+                                    <th style="background:#ddd; border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;"> VAT</th>
+                                </tr>
+
+                                {% for item in items %}
+                                    <tr>
+                                        <td style="border-bottom:1px solid #ddd; padding:9px 4px;">
+                                            {{ item }}
+                                        </td>
+
+                                        <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;" colspan="2">{{ policy.user_name }}</td>
+
+                                        <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;">{{ policy.total_sum_insured | floatformat:2 }}</td>
+
+                                        <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;">{{ policy.premiums | floatformat:2 }}</td>
+                                        <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right;">{{ policy.total_vat_duty | floatformat:2 }}</td>
+                                    </tr>
+
+                                    {% if forloop.counter|divisibleby:12 %}
+                                        <div style="page-break-after: always;"></div>
+                                    {% endif %}
+                                {% endfor %}
+
+                                <tr>
+                                    <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right; font-weight:bold;" colspan="3">TOTAL</td>
+                                    <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right; font-weight:bold; text-align:right;">{{ totals.sum_insured | floatformat:2 }}</td>
+                                    <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right; font-weight:bold; text-align:right;" colspan="1">{{ totals.sum | floatformat:2 }}</td>
+                                    <td style="border-bottom:1px solid #ddd; padding:9px 4px; text-align:right; font-weight:bold; text-align:right;" colspan="1">{{ totals.vat_on_platform | floatformat:2 }}</td>
+                                </tr>
+                            </table>
+
+                            <table border="0" cellpadding="0" cellspacing="0" style="font-size:13px; margin-bottom:20px; width:100%;">
+                                <tr>
+                                    <td style="width: 55%; font-weight:700;">
+                                        <h3 style="color:#222; background:#ddd; font-size:16px;">
+                                            All Cheques Payable to:
+                                        </h3>
+                                        <p>
+                                            Insurance Institute, <br />
+                                            Bank of EUROPE Branch,</br />
+                                            Account Number:<br/>
+                                            USD : 200233018   <br/>
+                                            USD: 10200226<br/>
+                                       </p>
+                                    </td>
+                                    <td style="text-align:left; font-weight:700;">
+                                        <h3 style="color:#222; background:#ddd; font-size:16px;">
+                                            <br/>
+                                        </h3>
+                                        <p>
+                                            For questions concerning this invoice, <br/>
+                                            Please contact : Elizabeth Brown <br/>
+                                            Tel:  +2005 <br/>
+                                            Email : {{ email }} <br/>
+                                        </p>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="padding:0;" bgcolor="#eee">
+                            <div style="color:#444; font-size:12px; padding:10px 12px; text-align:center;">
+                                Powered by <a href="https://test.co.test" style="text-decoration:underline;" target="_blank">TEST</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
