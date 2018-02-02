@@ -26,10 +26,6 @@ def generate_pdf(request):
     response['Content-Disposition'] = 'inline; filename=items.pdf'
     response['Content-Transfer-Encoding'] = 'binary'
 
-    with tempfile.NamedTemporaryFile(delete=True) as output:
-        output.write(result)
-        output.flush()
-        output = open(output.name, 'rb')
-        response.write(output.read())
+    response.write(result)
 
     return response
