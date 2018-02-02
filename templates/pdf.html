@@ -1,1 +1,5 @@
-test
+{% for item in items %}
+    <p>
+        {{ forloop.counter }} &mdash; {{ item }}
+    </p>
+{% endfor %}
